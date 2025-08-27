@@ -62,25 +62,6 @@ async function loadFromString(webSafeBase64String) {
   const data = JSON.parse(jsonString);
   return data;
 }
-function loadFromQueryParameters() {
-  const data = {};
-  const settings = Object.assign({}, settingsDefaults);
-  const params = new URLSearchParams(window.location.search);
-  const cardTexts = (params.get('cards') || '').split(',').filter(item => !!item);
-  const categories = (params.get('categories') || '').split(',').filter(item => !!item);
-  if (params.get('allowCategoryEditing') !== null) {
-    settings.allowCategoryEditing = Boolean(parseInt(params.get('allowCategoryEditing')));
-  }
-  if (params.get('isRandomized') !== null) {
-    settings.isRandomized = Boolean(parseInt(params.get('isRandomized')));
-  }
-  data[uncategorizedKey] = cardTexts;
-  data[settingsFlagsKey] = saveSettings(settings);
-  for (const categoryName of categories) {
-    data[categoryName] = [];
-  }
-  return data;
-}
 
 /* Utilities */
 function debounce(func, wait, immediate) {
