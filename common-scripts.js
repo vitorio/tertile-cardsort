@@ -49,16 +49,18 @@ async function base64ToUint8Array(base64string) {
   return new Uint8Array(await blob.arrayBuffer());
 }
 async function saveToString(data) {
+  const brotli = await import("./brotli.js").then(m => m.default);
   const jsonString = JSON.stringify(data);
-  const compressedData = pako.deflate(new TextEncoder().encode(jsonString));
+  const compressedData = brotli.compress(new TextEncoder().encode(jsonString));
   const base64String = await uint8ArrayToBase64(compressedData);
   const webSafeBase64String = base64String.replaceAll('+', '-').replaceAll('/', '_');
   return webSafeBase64String;
 }
 async function loadFromString(webSafeBase64String) {
+  const brotli = await import("./brotli.js").then(m => m.default);
   const base64String = webSafeBase64String.replaceAll('-', '+').replaceAll('_', '/');
   const compressedData = await base64ToUint8Array(base64String);
-  const jsonString = new TextDecoder('utf8').decode(pako.inflate(compressedData));
+  const jsonString = new TextDecoder('utf8').decode(brotli.decompress(compressedData));
   const data = JSON.parse(jsonString);
   return data;
 }
