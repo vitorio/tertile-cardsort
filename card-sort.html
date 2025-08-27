@@ -153,8 +153,9 @@
     <div class="main-layout">
       <div class="toolbar">
         <button class="btn-create-category">Create a new category</button>
-        <button class="btn-share-result">Share result</button>
-        <button class="btn-export-result">Export result</button>
+        <button class="btn-result-clipboard">Copy result to clipboard</button>
+        <button class="btn-result-mobile">Mobile share result</button>
+        <button class="btn-result-json">Export result to JSON</button>
       </div>
       <div class="uncategorized-cards">
         <div class="grid"></div>
@@ -194,8 +195,9 @@
 
       /* Card sorting */
       const buttonCreateCategory = document.querySelector('.btn-create-category');
-      const buttonShareResult = document.querySelector('.btn-share-result');
-      const buttonExportResult = document.querySelector('.btn-export-result');
+      const buttonResultClipboard = document.querySelector('.btn-result-clipboard');
+      const buttonResultMobile = document.querySelector('.btn-result-mobile');
+      const buttonResultJSON = document.querySelector('.btn-result-json');
       const cardTemplate = document.querySelector('.card-template');
       const categoryTemplate = document.querySelector('.category-template');
       const cardImageRegex = /\s*image\s*:\s*((?:https?|data):\S+)/i;
@@ -264,8 +266,9 @@
           debouncedUpdateData();
           categoriesGrid.refreshItems().layout();
         });
-        buttonShareResult.addEventListener('click', shareResult);
-        buttonExportResult.addEventListener('click', exportResult);
+        buttonResultClipboard.addEventListener('click', clipboardResult);
+        buttonResultMobile.addEventListener('click', mobileResult);
+        buttonResultJSON.addEventListener('click', exportResult);
         // Fix for window resize caused by virtual keyboard
         // Muuri layout is deferred until input loses focus
         let isDeferredResize = false;
@@ -414,26 +417,37 @@
         return candidateName;
       }
 
-      async function shareResult() {
+      async function clipboardResult() {
+        updateData();
+        const dataString = await saveToString(data);
+        const baseUrl = window.location.href.replace(regexRemoveBasenameFromUrl, '/');
+        const url = baseUrl + 'card-sort.html#' + dataString;
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(url);
+          const originalText = buttonResultClipboard.textContent;
+          buttonResultClipboard.textContent = 'Link copied to clipboard';
+          clearTimeout(buttonResultClipboard._textTimeout);
+          buttonResultClipboard._textTimeout = setTimeout(() => {
+            buttonResultClipboard.textContent = originalText;
+          }, 5000);
+        }
+        else {
+          window.location.href = url;
+          alert('Your browser does not support sharing. Please copy from the address bar instead.');
+        }
+      }
+
+      async function mobileResult() {
         updateData();
         const dataString = await saveToString(data);
         const baseUrl = window.location.href.replace(regexRemoveBasenameFromUrl, '/');
         const url = baseUrl + 'card-sort.html#' + dataString;
         if (navigator.share) {
           navigator.share({
-            title: '',
+            title: 'Card sort results',
             text: '',
             url: url,
           });
-        }
-        else if (navigator.clipboard) {
-          navigator.clipboard.writeText(url);
-          const originalText = buttonShareResult.textContent;
-          buttonShareResult.textContent = 'Link copied to clipboard';
-          clearTimeout(buttonShareResult._textTimeout);
-          buttonShareResult._textTimeout = setTimeout(() => {
-            buttonShareResult.textContent = originalText;
-          }, 5000);
         }
         else {
           window.location.href = url;
@@ -453,11 +467,11 @@
         const serializedData = JSON.stringify(cleanedData, null, 2);
         if (navigator.clipboard) {
           navigator.clipboard.writeText(serializedData);
-          const originalText = buttonExportResult.textContent;
-          buttonExportResult.textContent = 'Data copied to clipboard';
-          clearTimeout(buttonExportResult._textTimeout);
-          buttonExportResult._textTimeout = setTimeout(() => {
-            buttonExportResult.textContent = originalText;
+          const originalText = buttonResultJSON.textContent;
+          buttonResultJSON.textContent = 'Data copied to clipboard';
+          clearTimeout(buttonResultJSON._textTimeout);
+          buttonResultJSON._textTimeout = setTimeout(() => {
+            buttonResultJSON.textContent = originalText;
           }, 5000);
         }
         else {
