@@ -225,13 +225,8 @@
 
       async function initialize() {
         if ( ! window.location.hash) {
-          if (window.location.search) {
-            data = loadFromQueryParameters();
-          }
-          else {
-            window.location.href = 'index.html';
-            return;
-          }
+          window.location.href = 'index.html';
+          return;
         }
         else {
           data = await loadFromString(window.location.hash.split('#').pop());
